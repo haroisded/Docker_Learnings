@@ -1,0 +1,377 @@
+* ( DEVELPOMENT process "before" containers? ):
+- if your app ues 10 services, each developer neets to install those 10 services
+
+
+
+* ( DEVELOPMENT porcess "with" containers? ):
+- with containers, you dont have to install any of the services,
+directly on the operating system
+
+w/Docker, you have that service packaged in one isolated environment,
+e.g.. Postgres packed with dependencies and configs
+
+then you can just Start that service, as a Docker container,
+using 1 Docker Command, e.g.. "docker run postgres"
+( which the cmd will be the same for other OS's )
+
+
+- If your application depends on 10 Services, you would just have to,
+run 10 Docker Commands for each container, e.g..
+• docker run postgres
+• docker run redis
+• docker run..
+• etc..
+
+
+- Docker, Standardizes process of running any service on any
+local dev environment, also...
+
+you can even have different versions of the same application,
+running on your local environment, w/o having any conflict
+
+
+
+* ( DEPLOYMENT process "with" containers? ):
+
+- Developers create an application package( Docker Artifact ),
+that includes...
+• code
+• dependencies
+• configuration
+
+everything is packaged inside the Docker artifact
+
+
+- The only thing the operations team need to do, is to...
+
+• Install and set up Docker runtime, on the server before running
+containers
+
+• Run a Docker command, to fetch & run Docker artifacts
+
+
+
+* ( Some Examples that are Included in Docker Desktop ):
+
+
+1) ( Docker Engine ):
+• Docker Service itself
+• the part of the Docker that makes virtualization possible
+•a server w/ a long running daemon process "dockerd"
+• Manages images & containers
+
+
+2) ( Docker CLI - Client ):
+• CLI Interface, to interact w/Docker Service / Server
+• Execute Docker commands, to start/stop/etc.. Containers
+• GUI Client, to manage containers & images w/GUI
+
+
+
+* ( Docker Images vs Docker Containers ):
+
+
+( Docker Image ):
+- Docker allows to package the application w/its
+environment configuration in this package,
+
+that you can share & distribute easily ( e.g.. like a ZIP file )
+
+which you can upload to a artifact storage & then
+download on the server, locally when needed
+
+and that package / artifact that we produce with docker,
+is called a "Docker Image"...
+• an executable application artifact
+• includes app source code & complete environment configuration
+• Which you can add Environment variables, create directories, files etc...
+
+
+( Docker Container ):
+- Actually Starts the application
+- A running instance of an image
+
+- A container is made from a "fixed recipe" (Docker Image)
+that tells Docker how to create it
+
+and from that Same Image, you can run multiple containers
+( from 1 image )
+
+- a use case for containers, you can run multiple instances
+of the same application( Image ), for increased performance
+
+
+
+* ( Docker Registry ): 
+
+  ( Questions ):
+- How do we get images to run containers?
+  
+  We want to run a database container, 
+  how do we get their docker images?
+
+   
+  ( Docker Registries ):
+- a storage & distribution system for Docker Images
+  
+- a storage specifically for Docker Image type of artifacts 
+
+- Official Images, available from applications like...
+  • Redis
+  • Mongo
+  • Postgres
+  • etc...
+
+- Official images are maintained by the software authors 
+  or in collaboration w/the Docker Community 
+
+- Docker hosts one of the biggest Docker Registry("Docker hub")
+
+
+  ( Image Versioning ):
+- Docker images are versioned
+
+- Different versions are identified by tags
+
+- Docket tags are used to identify images by name
+
+
+  ( Pull an image ):
+- CMD:  docker pull {name}:{tag} 
+  // Pull an image from a registry
+
+- We actually get the Image from Docker Hub & 
+  Download locally, so we can start a container 
+  from that image, CMD...
+
+  Note: 
+  Using a specific version is best practice in most cases  
+
+
+  ( Docker Run an Image ):
+- CMD: docker run {name}:{tag} 
+  // Creates a container from given image & starts it
+     ( but blocks terminal by showing logs of container, 
+       before running )
+
+
+- CMD: docker run -d or --detach {name}:{tag}
+  // to run container in background & print 
+     container ID w/o showing logs
+
+
+- CMD: docker logs {container}
+  // View logs from service running inside the container 
+     ( which are present at the time of execution )
+
+   
+  ( Image Pull and Run Shortcut ):
+- Normally the flow is:
+1) docker pull {name}:{tag} 
+  //downloads the image to your local system
+
+2) docker run {name}:{tag} 
+  //creates a container from that image and starts it
+
+
+- But Docker combines these steps for convenience:
+
+  If you run "docker run {name}:{tag}" & image is 
+  not found locally, Docker will:
+
+1) Pull the image from the registry (by default Docker Hub).
+
+2) Create and start the container
+
+
+  ( Port Binding ): 
+
+- Question, how do we acces that container 
+  ( which we aren't allowed at the moment )
+
+  Because, the container, is running in the 
+  close Docker Network 
+  ( which stops us from accessing it in the local computer )
+
+
+- Solution, We need to "expose" the "container port" to the "host"
+  ( the machine the container runs on )
+
+  Port Binding:
+  Bind the container's port to the host's port, 
+  to make the service available to the outside world  
+
+
+- Containers, runs on a specific port & each application 
+  has some standard port on which its running, e.g.. 
+  • Nginx, runs on Port:80 
+  • Redis, runs on Port:6379
+
+  to bind the container port to the localhost's port, you must
+  first know which port the container is listening
+
+
+  The CMD that will allow us to see these ports is...
+  CMD: docker image inspect {image}:{tag}
+
+ 
+  "docker image inspect {image}:{tag}", is a deep look at the
+   metadata of an image, 
+
+  It outputs a big JSON object that includes things like:
+  • Config & Entrypoint → which command runs when the container starts
+  
+  • Environment variables → default variables set in the image
+  
+  • WorkingDir → the directory inside the container
+  
+  • ExposedPorts → the ports that the image claims it will listen on 
+                   (from the EXPOSE instruction in the Dockerfile)
+  
+  • Layers → all filesystem layers that make up the image.
+
+  • Size → total size of the image.
+
+  Note: For choosing host port, it's Standard to use the same port on
+        your host as container is using 
+        ( e.g.. MySQL port:3306, localhost port must be port:3306 )
+
+   
+- Port Binding Command:
+
+  CMD: docker run -d -p {localhost port}:{container port} {name}:{tag}
+  // "-p" publish a container's port to the host 
+
+
+
+* ( Other useful Docker Commands & Explanations ): 
+
+- CMD: docker logs {container_id}
+  //Outputs the logs of a container 
+
+
+- The docker run CMD
+• Creates a new container
+• Doesn't re-use previous container
+
+  meaning, when you run "docker run", you are 
+  running multiple containers
+
+
+- In relation to the docker run CMD, 
+
+  when you run "docker ps", it only sees the 
+  running container & not the containers that 
+  was created but stopped
+
+  but those containers actually still exist 
+
+  by adding "-a" flag, it Lists all containers 
+  ( stopped("Exit") & running("Up") )
+
+
+- docker stop {container_id or container_name}
+  // Stops a container from running 
+
+
+- docker start {container_id or container_name}
+  // Start one or more stopped containers, 
+     w/o having to create a new one by using
+     the docker run CMD 
+
+
+- Sometimes container_ids are hard to remember,
+  as an alternative you can also use container name
+  ( which is auto generated by docker, which you can rewrite )
+
+  CMD: docker run --name {container_name} {name}:{tag}
+  //Using the "--name" flag to assign a name to the created container
+
+
+
+* ( Registry vs Repository ):
+
+- Registry is a...
+• Service providing storage
+• Collection of Repositories 
+  ( e.g.. "Docker Hub" )
+
+
+- Repository is a...
+• Collection of related images w/same 
+  name but different versions
+
+
+
+* ( Dockerfile - Create own Images ):
+
+- Companies create custom images for their applications
+  example use case is...
+• User is done with developing an application
+• User wants to run it on a deployment server 
+• To make deployment process easier, you deploy
+  your application as a Docker Container
+
+
+- Question, How can you take your created deployed 
+  application code & packaged into a docker image?
+
+
+- Solution, We need to create a "definition" of how 
+  to build an image from our application
+  
+  & that definition is written in a file called "Dockerfile"
+
+
+- Dockerfile, is a text document that contains commands 
+  to assemble an image
+
+  Docker can then build an image by reading those instructions 
+
+
+ ( Structure of Dockerfile ):
+
+- Dockerfiles start from a "parent image" or "base image",
+  it's a Docker Image that your image is based on
+
+
+- Base images, are the starting point of a Docker image, 
+
+  its purpose is to save time & ensure consistency, by providing 
+  necessary dependencies,
+
+  So Users don’t have to manually install every resource the 
+  application requires to run the app
+
+  you choose the base image, depending on which tools 
+  you need to have available, e.g..
+• FROM {image}:{tag} // FROM node:19-alpine
+
+
+
+- Dockerfile must begin with a FROM instruction
+  ( Build this image from the specified image )
+
+  Every image consist of multiple image layers 
+
+
+
+
+ 
+
+
+  
+
+
+  
+
+   
+
+
+    
+  
+
+
+  
+   
+
